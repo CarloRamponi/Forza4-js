@@ -4,22 +4,55 @@
     <head>
         <meta charset="utf-8"/>
         <link rel="stylesheet" href="css/bootstrap.min.css" />
-        <title>Forza 4 - Ramponi Carlo</title>
-        <script src="forza4.js"></script>
+        <title>Forza 4</title>
+        <script src="js/forza4.js"></script>
     </head>
 
     <body>
         <div class="container">
             <h1>Forza 4!</h1>
             <hr />
-            <input type="text" id="player1" placeholder="Giocatore 1" style="margin-right:20px;"/>
-            <input type="text" id="player2" placeholder="Giocatore 2" style="margin-right:20px;"/>
-            <a href="#" class="btn btn-default" onclick="init()" id="button">Gioca!</a>
-            <span id="turnString"></span>
+
             <span id="error"></span>
-            <span id="buttons"></span>
-            <span id="table"></span>
-            <br /><br /><br /><br />
+
+            <span id="first_page">
+
+              <h2 class="d-inline-block">PvP</h2>
+              <div class="text-right d-inline-block">
+                <input type="text" id="player1" placeholder="Giocatore 1" style="margin-right:20px;"/>
+                <input type="text" id="player2" placeholder="Giocatore 2" style="margin-right:20px;"/>
+                <a href="#" class="btn btn-default" onclick="initPvP()" id="button">Gioca!</a>
+              </div>
+
+              <br />
+              <hr />
+              <br />
+
+              <h2 class="d-inline-block">Player vs Bot</h2>
+              Molto lento vi avverto :|
+              <div class="text-right d-inline-block">
+                <input type="text" id="player" placeholder="Giocatore 1" style="margin-right:20px;"/>
+                <a href="#" class="btn btn-default" onclick="initPvB()" id="button">Gioca!</a>
+              </div>
+
+              <br />
+              <hr />
+
+            </span>
+
+            <span id="second_page" style="display: none;">
+
+              <span id="header">
+                <h4>Giocatore 1: <span id="player1header" class="text-danger"></span></h4>
+                <h4>Giocatore 2: <span id="player2header" class="text-warning"></span></h4>
+              </span>
+              <p id="turnString">
+                Turno di <span id="turn"></span>
+              </p>
+              <table id="table"></table>
+
+            </span>
+
         </div>
     </body>
 
