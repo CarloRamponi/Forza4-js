@@ -338,8 +338,8 @@ function displayLose() {
 var gameObj;
 
 function initPvP(){
-    player1 = document.getElementById("player1").value;
-    player2 = document.getElementById("player2").value;
+    var player1 = document.getElementById("player1").value;
+    var player2 = document.getElementById("player2").value;
 
     if(player1=="" || player2 ==""){
       displayError("I <strong>campi</strong> non possono essere <strong>vuoti</strong>!!!");
@@ -353,7 +353,7 @@ function initPvP(){
 }
 
 function initPvB(){
-    player = document.getElementById("player").value;
+    var player = document.getElementById("player").value;
 
     if(player==""){
       displayError("Il nome del giocatore non può essere <strong>vuoto</strong>!!!");
