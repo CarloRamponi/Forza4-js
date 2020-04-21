@@ -84,14 +84,14 @@ class Solver {
       if(board.canPlay(x)) {
         // console.log("Trying to play " + x);
         board.play(x);                 // Ora è il turno dell'avversario.
-        var score = -Solver.solve_rec(board, -board.width*board.height/2, board.width*board.height/2);  // quindi ritorno il punteggio di questo stato cambiato di segno
+        var score = -Solver.solve_rec(board, -board.width*board.height/2, board.width*board.height/2, 12);  // quindi ritorno il punteggio di questo stato cambiato di segno
         // var score = -Solver.solve_rec(board, -1, 1);  // quindi ritorno il punteggio di questo stato cambiato di segno
         board.unplay(x);
         if(score > best) { // tengo traccia del migliore.
           best = score;
           bestMove = x;
         } else if (score == best) { //se sono uguali lo prendo in modo casuale
-          if(Math.floor(Math.random() * 3 != 0)) {
+          if(Math.floor(Math.random() * 2 != 0)) {
             best = score;
             bestMove = x;
           }
@@ -106,10 +106,14 @@ class Solver {
     Punteggio 0: non ci sono mosse da fare
     Punteggio positivo: numero di mosse necessarie per vincere (nel caso in cui l'avversario non possa vincere la prossima mossa)
     Punteggio negativo: numero di mosse necessarie perchè l'avversario vinca
-  */
-  static solve_rec(board, alpha, beta) {
 
-    if(board.isDraw()) { // check for draw game
+    maxMoves: il numero di mosse da prevedere
+  */
+  static solve_rec(board, alpha, beta, maxMoves) {
+
+    debugger;
+
+    if(maxMoves <= 0 || board.isDraw()) { // check for draw game
        return 0;
     }
 
@@ -131,7 +135,7 @@ class Solver {
     for(var x = 0; x < board.width; x++) {
       if(board.canPlay(x)) {
         board.play(x);
-        var score = -Solver.solve(board, -beta, -alpha);
+        var score = -Solver.solve_rec(board, -beta, -alpha, maxMoves-1);
         board.unplay(x);
 
         if(score >= beta) {
@@ -244,7 +248,7 @@ class Game {
 
     if(this.mode == 1) {
       var disclaimer = document.createElement("p");
-      disclaimer.innerHTML = "Purtroppo questo algoritmo non è per nulla ottimizzato quindi con una griglia più grande l'attesa diventa insostenibile. Comunque inizi tu, quindi dovresti vincere :) (<a href='https://en.wikipedia.org/wiki/Connect_Four#Mathematical_solution'>guarda la soluzione matematica</a>)"
+      disclaimer.innerHTML = "Inizi tu, quindi dovresti vincere :) (<a href='https://en.wikipedia.org/wiki/Connect_Four#Mathematical_solution' target='_blank'>Mathematical solution</a>)"
       document.getElementById("header").appendChild(disclaimer);
     }
 
@@ -349,7 +353,7 @@ function initPvB(){
       dismissError();
       document.getElementById("first_page").style.display = "none";
       document.getElementById("second_page").style.display = "block";
-      gameObj = Game.pvb(player, 4, 4); //più grande è troppo lento
+      gameObj = Game.pvb(player, 7, 6); //più grande è troppo lento
       gameObj.draw();
     }
 }
