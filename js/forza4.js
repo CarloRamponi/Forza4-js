@@ -1,6 +1,6 @@
 "use strict";
 
-
+//classe che gestisce lo stato del gioco
 class GameBoard {
 
   constructor(width, height) {
@@ -67,8 +67,10 @@ class GameBoard {
 
 }
 
+//classe che contiene i metodi (statici) necessari per calcolare la mossa migliore
 class Solver {
 
+  //ritorna la mossa nell'intervallo [0, board.width) che ha punteggio massimo
   static solve(board) {
 
     for(x = 0; x < board.width; x++) { // controlla se posso vincere in una mossa
@@ -78,19 +80,17 @@ class Solver {
     }
 
     var bestMove = -1;
-    var best = -(board.width * board.height); //il massimo
+    var best = -(board.width * board.height); //il minimo punteggio possibile
 
-    for(var x = 0; x < board.width; x++) { // calcolo il punteggio di tutte le possibili mosse
+    for(var x = 0; x < board.width; x++) {                                                                  // calcolo il punteggio di tutte le possibili mosse
       if(board.canPlay(x)) {
-        // console.log("Trying to play " + x);
-        board.play(x);                 // Ora è il turno dell'avversario.
+        board.play(x);                                                                                      // Ora è il turno dell'avversario.
         var score = -Solver.solve_rec(board, -board.width*board.height/2, board.width*board.height/2, 12);  // quindi ritorno il punteggio di questo stato cambiato di segno
-        // var score = -Solver.solve_rec(board, -1, 1);  // quindi ritorno il punteggio di questo stato cambiato di segno
-        board.unplay(x);
+        board.unplay(x); //ripristino lo stato precedente (l'algoritmo al posto di questo allocava un'altra gameboard e eseguiva la nuova mossa sulla nuova istanza, spreco di memoria!!)
         if(score > best) { // tengo traccia del migliore.
           best = score;
           bestMove = x;
-        } else if (score == best) { //se sono uguali lo prendo in modo casuale
+        } else if (score == best) { //se sono uguali lo prendo in modo casuale, altrimenti prenderebbe sempre il primo (o l'ultimo in base al '>' o '>=')
           if(Math.floor(Math.random() * 2 != 0)) {
             best = score;
             bestMove = x;
@@ -99,25 +99,25 @@ class Solver {
       }
     }
 
+    //la mossa con il punteggio migliore
     return bestMove;
   }
 
   /*
-    Punteggio 0: non ci sono mosse da fare
-    Punteggio positivo: numero di mosse necessarie per vincere (nel caso in cui l'avversario non possa vincere la prossima mossa)
-    Punteggio negativo: numero di mosse necessarie perchè l'avversario vinca
+    restituisce:
+      Punteggio 0: non ci sono mosse da fare, o se si è raggiunto il limite di mosse
+      Punteggio positivo: (width*height) - numero di mosse necessarie per vincere (meno mosse servono, più alto è il punteggio)
+      Punteggio negativo: numero di mosse necessarie perchè l'avversario vinca (meno mosse servono, più alto sarà il puntegggio, perchè è negativo!)
 
-    maxMoves: il numero di mosse da prevedere
+    maxMoves: il numero massimo di mosse da prevedere
   */
   static solve_rec(board, alpha, beta, maxMoves) {
 
-    debugger;
-
-    if(maxMoves <= 0 || board.isDraw()) { // check for draw game
+    if(maxMoves <= 0 || board.isDraw()) { // controlla se ci sono mosse da fare
        return 0;
     }
 
-    for(var x = 0; x < board.width; x++) { // check if current player can win next move
+    for(var x = 0; x < board.width; x++) { // controlla se il giocatore corrente può vincere in una mossa
       if(board.canPlay(x) && board.isWinningMove(x)) {
          return (board.width*board.height + 1 - board.moves) / 2;
       }
@@ -126,17 +126,17 @@ class Solver {
     var max = (board.width * board.height - 1 - board.moves) / 2;
 
     if(beta > max) {
-      beta = max;                     // there is no need to keep beta above our max possible score.
+      beta = max;
       if(alpha >= beta) {
-        return beta;  // prune the exploration if the [alpha;beta] window is empty.
+        return beta;
       }
     }
 
     for(var x = 0; x < board.width; x++) {
       if(board.canPlay(x)) {
-        board.play(x);
-        var score = -Solver.solve_rec(board, -beta, -alpha, maxMoves-1);
-        board.unplay(x);
+        board.play(x); //simulazione mossa
+        var score = -Solver.solve_rec(board, -beta, -alpha, maxMoves-1); //punteggio dell'avversario cambiato di segno
+        board.unplay(x); //ripristino stato
 
         if(score >= beta) {
           return score;
@@ -154,46 +154,50 @@ class Solver {
 
 }
 
+//classe che gestisce l'interfaccia e l'input da parte dell'utente
 class Game {
 
-  constructor(width, height) {
+  constructor(width, height, mode, player1, player2) {
     this.board = new GameBoard(width, height);
     this.width = width;
     this.height = height;
+    this.player1 = player1;
+    this.player2 = player2;
     this.win = false;
     this.buttonsEnabled = true;
+    this.mode = mode;
   }
 
   enableButtons(b) {
     this.buttonsEnabled = b;
   }
 
+  //crea un gioco PvP
   static pvp(player1, player2, width, height) {
-    var game = new Game(width, height);
-    game.player1 = player1;
-    game.player2 = player2;
-    game.mode = 0;
-    return game;
+    return new Game(width, height, 0, player1, player2);
   }
 
+  //crea un gioco PvB
   static pvb(player, width, height){
-    var game = new Game(width, height);
-    game.player1 = player;
-    game.player2 = "Bot";
-    game.mode = 1;
-    return game;
+    return new Game(width, height, 1, player, "Bot");
   }
 
+  //prova a giocare la mossa col
   play(col) {
 
+    //se il gioco non è finito e i bottoni sono abilitati
     if(!this.win && this.buttonsEnabled){
 
+        //se può giocare in quella colonna
         if(this.board.canPlay(col)) {
 
+          //elimino eventuali messaggi di errore precedentemente creati
           dismissError();
 
+          //aggiorno l'immagine corrispondente
           document.getElementById("cell"+col+this.board.heights[col]).innerHTML = (this.board.moves % 2 == 0)? "<img src='img/rosso.png'>" : "<img src='img/giallo.png'>";
 
+          //se è la mossa vincente
           if(this.board.isWinningMove(col)) {
 
             this.win = true;
@@ -212,22 +216,24 @@ class Game {
 
             this.board.play(col);
 
+            //controllo che ci siano ancora mosse possibili
             if(this.board.isDraw()) {
               displayDraw();
             } else {
 
+              //PvP
               if(this.mode == 0) {
 
                 document.getElementById("turn").innerText = (this.board.moves % 2 == 0)? this.player1 : this.player2;
                 document.getElementById("turn").className = (this.board.moves % 2 == 0)? "text-danger" : "text-warning";
 
-              } else if (this.board.moves % 2 == 1){
+              } else if (this.board.moves % 2 == 1) { //PvB
 
-                this.enableButtons(false);
+                this.enableButtons(false); //disabilito temporaneamente i bottoni (mentre il computer decide e fa la sua mossa)
 
-                var solution = Solver.solve(gameObj.board);
-                console.log("Solution: " + solution);
-                this.enableButtons(true);
+                var solution = Solver.solve(gameObj.board); //calcolo la mossa migliore
+
+                this.enableButtons(true); //li riabilito
                 this.play(solution);
 
               }
@@ -241,6 +247,7 @@ class Game {
 
   }
 
+  //metodo che crea la griglia del gioco e i bottoni
   draw() {
 
     document.getElementById("player1header").innerText = this.player1;
@@ -327,6 +334,7 @@ function displayLose() {
   document.getElementById("error").innerHTML=string;
 }
 
+//variabile globale
 var gameObj;
 
 function initPvP(){
