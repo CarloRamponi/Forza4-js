@@ -222,19 +222,19 @@ class Game {
             } else {
 
               //PvP
-              if(this.mode == 0) {
 
-                document.getElementById("turn").innerText = (this.board.moves % 2 == 0)? this.player1 : this.player2;
-                document.getElementById("turn").className = (this.board.moves % 2 == 0)? "text-danger" : "text-warning";
+              document.getElementById("turn").innerText = (this.board.moves % 2 == 0)? this.player1 : this.player2;
+              document.getElementById("turn").className = (this.board.moves % 2 == 0)? "text-danger" : "text-warning";
 
-              } else if (this.board.moves % 2 == 1) { //PvB
+              if (this.mode == 1 && this.board.moves % 2 == 1) { //PvB
 
                 this.enableButtons(false); //disabilito temporaneamente i bottoni (mentre il computer decide e fa la sua mossa)
 
-                var solution = Solver.solve(gameObj.board); //calcolo la mossa migliore
-
-                this.enableButtons(true); //li riabilito
-                this.play(solution);
+                window.setTimeout(() => {
+                  var solution = Solver.solve(gameObj.board); //calcolo la mossa migliore
+                  gameObj.enableButtons(true);
+                  gameObj.play(solution);
+                }, 1000);
 
               }
             }
